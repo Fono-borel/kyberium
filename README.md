@@ -79,7 +79,7 @@ graph TD;
 ![Diagramme de classes du protocole](img/kyperium_protocol_class_diagram.svg)
 
 ### Animation de sécurité
-![Animation Kyberium](img/kyberium-animation.gif)
+![Animation Kyberium](img/kyberium.png)
 
 ---
 
