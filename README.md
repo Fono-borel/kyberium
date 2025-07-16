@@ -78,7 +78,7 @@ graph TD;
 ### Diagramme de classes du protocole
 ![Diagramme de classes du protocole](img/kyperium_protocol_class_diagram.svg)
 
-### Animation de sécurité
+### Tempon de sécurité du Protocole KYBERIUM
 ![Animation Kyberium](img/kyberium.png)
 
 ---
