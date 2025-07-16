@@ -1,0 +1,84 @@
+graph TD
+    %% ============================================================================
+    %% INITIALISATION ET CONFIGURATION
+    %% ============================================================================
+    A[Début] --> B[Appel à KyberiumAPI.init_session]
+    B -->|Configurer kdf_type, symmetric_type| C{Générer paires de clés}
+    C -->|KEMInterface| D[Kyber1024.generate_keypair]
+    C -->|SignatureInterface| E[DilithiumSignature.generate_keypair]
+    D --> F[Clé publique + Clé privée]
+    E --> G[Clé publique de signature + Clé privée de signature]
+    F --> H[SessionManager.init_session]
+    G --> H
+    H -->|KDFType: SHA3/SHAKE256| I[Dériver clé initiale via SHA3KDF/SHAKE256KDF]
+    I --> J[État de la session créé]
+
+    %% ============================================================================
+    %% HANDSHAKE
+    %% ============================================================================
+    J --> K[SessionManager.perform_handshake]
+    K -->|Encapsulation| L[Kyber1024.encapsulate]
+    K -->|Signature| M[DilithiumSignature.sign]
+    L --> N[Chiffre KEM + Secret partagé]
+    M --> O[Signature du handshake]
+    N --> P[Envoyer chiffre KEM + signature]
+    P --> Q[Réception par l'autre pair]
+    Q --> R[SessionManager.complete_handshake]
+    R -->|Décapsulation| S[Kyber1024.decapsulate]
+    R -->|Vérification| T[DilithiumSignature.verify]
+    S --> U[Secret partagé obtenu]
+    T -->|Si vérifié| U
+    U --> V[Handshake terminé]
+
+    %% ============================================================================
+    %% CHIFFREMENT/DÉCHIFFREMENT
+    %% ============================================================================
+    V --> W{Type de chiffrement}
+    W -->|Standard| X[SessionManager.encrypt]
+    W -->|Triple Ratchet| Y[TripleRatchet.ratchet_encrypt]
+    X -->|SymmetricType: AESGCM/ChaCha20| Z[AESGCMCipher.encrypt / ChaCha20Cipher.encrypt]
+    Y -->|SymmetricType: AESGCM/ChaCha20| Z
+    Z -->|Dériver clé via KDFInterface| AA[SHA3KDF/SHAKE256KDF.derive_key]
+    AA --> AB[Texte chiffré + Nonce]
+    AB --> AC[Envoyer texte chiffré + nonce]
+
+    AC --> AD[Réception texte chiffré + nonce]
+    AD --> AE{Type de déchiffrement}
+    AE -->|Standard| AF[SessionManager.decrypt]
+    AE -->|Triple Ratchet| AG[TripleRatchet.ratchet_decrypt]
+    AF -->|SymmetricType: AESGCM/ChaCha20| AH[AESGCMCipher.decrypt / ChaCha20Cipher.decrypt]
+    AG -->|SymmetricType: AESGCM/ChaCha20| AH
+    AH -->|Dériver clé via KDFInterface| AI[SHA3KDF/SHAKE256KDF.derive_key]
+    AI --> AJ[Texte en clair obtenu]
+
+    %% ============================================================================
+    %% GESTION DES EXCEPTIONS ET PERFORMANCE
+    %% ============================================================================
+    AJ --> AK[PerformanceMonitor.record_encryption/decryption]
+    AK --> AL[Stocker statistiques]
+    B -->|Erreur| AM[KyberiumException]
+    K -->|Erreur de sécurité| AN[SecurityException]
+    R -->|Échec vérification| AN
+    AM --> AO[Fin avec erreur]
+    AN --> AO
+
+    %% ============================================================================
+    %% BINDINGS NATIFS
+    %% ============================================================================
+    A --> AP[Appel via KyberiumCPP/JNI/PHP]
+    AP --> B
+
+    %% ============================================================================
+    %% FIN
+    %% ============================================================================
+    AL --> AQ[Fin]
+    AJ --> AQ
+
+    %% ============================================================================
+    %% STYLES
+    %% ============================================================================
+    style A fill:#bfb,stroke:#6f6,stroke-width:2px,stroke-dasharray: 5 5
+    style AQ fill:#bfb,stroke:#6f6,stroke-width:2px,stroke-dasharray: 5 5
+    style AM fill:#ffb,stroke:#663,stroke-width:2px,stroke-dasharray: 5 5
+    style AN fill:#ffb,stroke:#663,stroke-width:2px,stroke-dasharray: 5 5
+    style AL fill:#ffb,stroke:#663,stroke-width:2px,stroke-dasharray: 5 5

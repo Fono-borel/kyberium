@@ -1,0 +1,147 @@
+classDiagram
+    %% ============================================================================
+    %% INTERFACES CRYPTOGRAPHIQUES (ABSTRACT)
+    %% ============================================================================
+
+    class KEMInterface {
+        <<interface>>
+        +generate_keypair() tuple[bytes, bytes]
+        +encapsulate(public_key: bytes) tuple[bytes, bytes]
+        +decapsulate(ciphertext: bytes, private_key: bytes) bytes
+    }
+
+    class SignatureInterface {
+        <<interface>>
+        +generate_keypair() tuple[bytes, bytes]
+        +sign(message: bytes, private_key: bytes) bytes
+        +verify(message: bytes, signature: bytes, public_key: bytes) bool
+    }
+
+    class SymmetricCipherInterface {
+        <<interface>>
+        +encrypt(plaintext: bytes, key: bytes, nonce?: bytes) tuple[bytes, bytes]
+        +decrypt(ciphertext: bytes, key: bytes, nonce: bytes) bytes
+    }
+
+    class KDFInterface {
+        <<interface>>
+        +derive_key(input_key_material: bytes, length: int) bytes
+    }
+
+    %% ============================================================================
+    %% IMPLÉMENTATIONS CRYPTOGRAPHIQUES
+    %% ============================================================================
+
+    class Kyber1024 {
+        +generate_keypair() tuple[bytes, bytes]
+        +encapsulate(public_key: bytes) tuple[bytes, bytes]
+        +decapsulate(ciphertext: bytes, private_key: bytes) bytes
+    }
+
+    class DilithiumSignature {
+        +generate_keypair() tuple[bytes, bytes]
+        +sign(message: bytes, private_key: bytes) bytes
+        +verify(message: bytes, signature: bytes, public_key: bytes) bool
+    }
+
+    class AESGCMCipher {
+        +encrypt(plaintext: bytes, key: bytes, nonce?: bytes) tuple[bytes, bytes]
+        +decrypt(ciphertext: bytes, key: bytes, nonce: bytes) bytes
+    }
+
+    class SHA3KDF {
+        +derive_key(input_key_material: bytes, length: int) bytes
+    }
+
+    %% ============================================================================
+    %% GESTIONNAIRE ET API
+    %% ============================================================================
+
+    class SessionManager {
+        <<Abstract>>
+        -session_id: str
+        -shared_secret: bytes
+        -handshake_done: bool
+        +init_session(peer_public_key?: bytes, kdf_type: str, symmetric_type: str) bytes
+        +complete_handshake(ciphertext: bytes) bool
+        +encrypt(plaintext: bytes) tuple[bytes, bytes]
+        +decrypt(ciphertext: bytes, nonce: bytes) bytes
+    }
+
+    class TripleRatchet {
+        -root_key: bytes
+        -send_chain_key: bytes
+        -recv_chain_key: bytes
+        +init_ratchet(peer_kem_public: bytes, peer_sign_public: bytes) bytes
+        +ratchet_encrypt(plaintext: bytes) dict
+        +ratchet_decrypt(ciphertext: bytes, nonce: bytes, signature: bytes) bytes
+    }
+
+    class KyberiumAPI {
+        +init_session(peer_public_key?: bytes, kdf_type: str, symmetric_type: str) bytes
+        +encrypt(plaintext: bytes) tuple[bytes, bytes]
+        +decrypt(ciphertext: bytes, nonce: bytes) bytes
+        +sign(message: bytes) bytes
+        +verify(message: bytes, signature: bytes, public_key?: bytes) bool
+    }
+
+    %% ============================================================================
+    %% MESSAGERIE
+    %% ============================================================================
+
+    class KyberiumMessenger {
+        -clients: Dict[str, Any]
+        +register_client(client_id: str) void
+        +handle_message(client_id: str, message: str) void
+        +relay_encrypted_message(sender_id: str, data: dict) void
+    }
+
+    %% ============================================================================
+    %% ÉNUMÉRATIONS
+    %% ============================================================================
+
+    class KDFType {
+        <<enumeration>>
+        SHA3
+        SHAKE256
+    }
+
+    class SymmetricType {
+        <<enumeration>>
+        AESGCM
+        ChaCha20
+    }
+
+    %% ============================================================================
+    %% RELATIONS
+    %% ============================================================================
+
+    KEMInterface <|.. Kyber1024 : Inheritance
+    SignatureInterface <|.. DilithiumSignature : Inheritance
+    SymmetricCipherInterface <|.. AESGCMCipher : Inheritance
+    KDFInterface <|.. SHA3KDF : Inheritance
+    SessionManager *-- KEMInterface : uses
+    SessionManager *-- KDFInterface : uses
+    SessionManager *-- SignatureInterface : uses
+    SessionManager *-- SymmetricCipherInterface : uses
+    TripleRatchet *-- KEMInterface : uses
+    TripleRatchet *-- KDFInterface : uses
+    TripleRatchet *-- SignatureInterface : uses
+    TripleRatchet *-- SymmetricCipherInterface : uses
+    KyberiumAPI *-- SessionManager : manages
+    KyberiumAPI *-- TripleRatchet : manages
+    KyberiumMessenger --> SessionManager : uses
+    SessionManager "1" --> KDFType : has
+    SessionManager "1" --> SymmetricType : has
+
+    %% ============================================================================
+    %% STYLES
+    %% ============================================================================
+
+    style KEMInterface fill:#bfb,stroke:#6f6,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    style SignatureInterface fill:#bfb,stroke:#6f6,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    style SymmetricCipherInterface fill:#bfb,stroke:#6f6,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    style KDFInterface fill:#bfb,stroke:#6f6,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    style SessionManager fill:#bfb,stroke:#6f6,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    style KDFType fill:#ffb,stroke:#663,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    style SymmetricType fill:#ffb,stroke:#663,stroke-width:2px,color:#000,stroke-dasharray: 5 5

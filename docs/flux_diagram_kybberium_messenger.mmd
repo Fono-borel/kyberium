@@ -1,0 +1,84 @@
+graph TD
+    %% ============================================================================
+    %% INITIALISATION ET CONFIGURATION
+    %% ============================================================================
+    A[Début] --> B[Appel à KyberiumAPI.init_session]
+    B -->|Configurer kdf_type, symmetric_type| C{Générer paires de clés}
+    C -->|Utiliser KEMInterface| D[Kyber1024.generate_keypair]
+    C -->|Utiliser SignatureInterface| E[DilithiumSignature.generate_keypair]
+    D --> F[Clé publique + Clé privée]
+    E --> G[Clé publique de signature + Clé privée de signature]
+    F --> H[SessionManager.init_session]
+    G --> H
+    H -->|Stocker peer_public_key| I[État de la session créé]
+
+    %% ============================================================================
+    %% HANDSHAKE
+    %% ============================================================================
+    I --> J[SessionManager.perform_handshake]
+    J -->|Encapsulation via Kyber1024| K[Kyber1024.encapsulate]
+    K --> L[Chiffre KEM + Secret partagé]
+    J -->|Signature via DilithiumSignature| M[DilithiumSignature.sign]
+    M --> N[Signature du handshake]
+    L --> O[Envoyer chiffre KEM + signature à l'autre pair]
+    O --> P[Réception par l'autre pair]
+    P --> Q[SessionManager.complete_handshake]
+    Q -->|Décapsulation via Kyber1024| R[Kyber1024.decapsulate]
+    Q -->|Vérification via DilithiumSignature| S[DilithiumSignature.verify]
+    R --> T[Secret partagé obtenu]
+    S -->|Si vérifié| T
+    T --> U[Handshake terminé]
+
+    %% ============================================================================
+    %% CHIFFREMENT/DÉCHIFFREMENT
+    %% ============================================================================
+    U --> V{Type de chiffrement}
+    V -->|Standard| W[SessionManager.encrypt]
+    V -->|Triple Ratchet| X[TripleRatchet.ratchet_encrypt]
+    W -->|Utiliser SymmetricCipherInterface| Y[AESGCMCipher.encrypt ou ChaCha20Cipher.encrypt]
+    Y -->|Clé dérivée via KDFInterface| Z[SHA3KDF.derive_key ou SHAKE256KDF.derive_key]
+    Z --> AA[Texte chiffré + Nonce]
+    X -->|Clé dérivée via KDFInterface| Z
+    X -->|Utiliser SymmetricCipherInterface| Y
+    AA --> AB[Envoyer texte chiffré + nonce]
+
+    AB --> AC[Réception du texte chiffré + nonce]
+    AC --> AD{Type de déchiffrement}
+    AD -->|Standard| AE[SessionManager.decrypt]
+    AD -->|Triple Ratchet| AF[TripleRatchet.ratchet_decrypt]
+    AE -->|Utiliser SymmetricCipherInterface| AG[AESGCMCipher.decrypt ou ChaCha20Cipher.decrypt]
+    AF -->|Utiliser SymmetricCipherInterface| AG
+    AG -->|Clé dérivée via KDFInterface| AH[SHA3KDF.derive_key ou SHAKE256KDF.derive_key]
+    AH --> AI[Texte en clair obtenu]
+
+    %% ============================================================================
+    %% GESTION DES EXCEPTIONS ET PERFORMANCE
+    %% ============================================================================
+    AI --> AJ[PerformanceMonitor.record_encryption/décryption]
+    AJ --> AK[Stocker statistiques]
+    B -->|Erreur| AL[KyberiumException]
+    J -->|Erreur de sécurité| AM[SecurityException]
+    Q -->|Échec vérification| AM
+    AL --> AN[Fin avec erreur]
+    AM --> AN
+
+    %% ============================================================================
+    %% UTILISATION DES BINDINGS NATIFS
+    %% ============================================================================
+    A --> AO[Appel via KyberiumCPP/KyberiumJNI/KyberiumPHP]
+    AO --> B
+
+    %% ============================================================================
+    %% FIN
+    %% ============================================================================
+    AK --> AP[Fin]
+    AI --> AP
+
+    %% ============================================================================
+    %% STYLES
+    %% ============================================================================
+    style A fill:#bfb,stroke:#6f6,stroke-width:2px
+    style AP fill:#bfb,stroke:#6f6,stroke-width:2px
+    style AL fill:#ffb,stroke:#663,stroke-width:2px
+    style AM fill:#ffb,stroke:#663,stroke-width:2px
+    style AK fill:#ffb,stroke:#663,stroke-width:2px
