@@ -1,30 +1,27 @@
-# 🧪 Guide des Tests Kyberium
+# 🧪 Guide des Tests Kyberium (Mise à jour 2025)
 
-## Vue d'ensemble
+## Nouveautés et renforcement (2025)
+- Suppression totale des modules dummy (DummyKyber, DummyDilithium, etc.)
+- Utilisation exclusive de primitives NIST (Kyber1024, Dilithium, AES-GCM, ChaCha20)
+- Ajout de tests bit-flip systématiques (corruption de signature, message, clé, ciphertext)
+- Tests fail-closed : toute anomalie provoque la divergence des secrets, pas d’exception attendue
+- Edge-cases : messages hors-ordre, replay, désynchronisation, cas limites (vide, très long, mauvaise taille)
+- Synchronisation stricte du Triple Ratchet : aucune tolérance aux pertes, pas de skipped message keys
 
-Ce guide présente la stratégie de test complète du projet Kyberium, conçue pour garantir la sécurité, la performance et la robustesse de la cryptographie post-quantique de niveau militaire.
-
-## 🎯 Objectifs de Test
+## Objectifs de Test
 
 ### Sécurité
-- **Validation cryptographique** : Vérification des propriétés mathématiques
-- **Résistance aux attaques** : Tests contre les vecteurs d'attaque connus
-- **Perfect Forward Secrecy** : Validation du Triple Ratchet
-- **Authentification** : Vérification des signatures post-quantiques
-
-### Performance
-- **Latence** : Mesure des temps de réponse
-- **Throughput** : Capacité de traitement
-- **Utilisation mémoire** : Optimisation des ressources
-- **Scalabilité** : Tests de charge
+- **Validation cryptographique** : conformité NIST, robustesse post-quantique
+- **Résistance aux attaques** : bit-flip, edge-cases, replay, corruption
+- **Perfect Forward Secrecy** : Triple Ratchet post-quantique
+- **Authentification** : signatures Dilithium
 
 ### Robustesse
-- **Gestion d'erreurs** : Tests des cas limites
-- **Interopérabilité** : Compatibilité multi-plateformes
-- **Récupération** : Tests de résilience
-- **Intégration** : Tests end-to-end
+- **Fail-closed** : toute erreur = arrêt sécurisé, divergence des secrets
+- **Aucun dummy** : tous les tests sont sur crypto réelle
+- **Interopérabilité** : tests multi-plateformes
 
-## 📁 Structure des Tests
+## Structure des Tests
 
 ```
 tests/
@@ -56,6 +53,196 @@ tests/
 │   └── test_benchmarks.py         # Benchmarks
 └── test_triple_vs_double_ratchet.py # Tests de comparaison
 ```
+
+## Exemples de tests renforcés
+
+### Bit-flip sur signature
+```python
+import unittest
+from kyberium.signature.dilithium import DilithiumSignature
+
+class TestDilithiumSignature(unittest.TestCase):
+    def setUp(self):
+        self.signature = DilithiumSignature()
+    
+    def test_keypair_generation(self):
+        """Test de génération de paire de clés de signature"""
+        public_key, private_key = self.signature.generate_keypair()
+        
+        # Vérifications
+        self.assertIsInstance(public_key, bytes)
+        self.assertIsInstance(private_key, bytes)
+        self.assertEqual(len(public_key), 1952)  # Taille standard Dilithium
+        self.assertEqual(len(private_key), 4000)  # Taille standard Dilithium
+    
+    def test_sign_verify(self):
+        """Test de signature et vérification"""
+        public_key, private_key = self.signature.generate_keypair()
+        message = b"Message de test pour signature post-quantique"
+        
+        # Signature
+        signature = self.signature.sign(message, private_key)
+        
+        # Vérification
+        is_valid = self.signature.verify(message, signature, public_key)
+        self.assertTrue(is_valid)
+    
+    def test_signature_tampering(self):
+        """Test de détection de falsification"""
+        public_key, private_key = self.signature.generate_keypair()
+        message = b"Message original"
+        
+        # Signature originale
+        signature = self.signature.sign(message, private_key)
+        
+        # Message modifié
+        tampered_message = b"Message modifie"
+        
+        # Vérification doit échouer
+        is_valid = self.signature.verify(tampered_message, signature, public_key)
+        self.assertFalse(is_valid)
+```
+
+### Bit-flip sur ciphertext
+```python
+import unittest
+from kyberium.kem.kyber import Kyber1024
+
+class TestKyber1024(unittest.TestCase):
+    def setUp(self):
+        self.kem = Kyber1024()
+    
+    def test_keypair_generation(self):
+        """Test de génération de paire de clés"""
+        public_key, private_key = self.kem.generate_keypair()
+        
+        # Vérifications
+        self.assertIsInstance(public_key, bytes)
+        self.assertIsInstance(private_key, bytes)
+        self.assertEqual(len(public_key), 1184)  # Taille standard Kyber1024
+        self.assertEqual(len(private_key), 2400)  # Taille standard Kyber1024
+    
+    def test_encapsulation_decapsulation(self):
+        """Test d'encapsulation et décapsulation"""
+        public_key, private_key = self.kem.generate_keypair()
+        
+        # Encapsulation
+        ciphertext, shared_secret1 = self.kem.encapsulate(public_key)
+        
+        # Décapsulation
+        shared_secret2 = self.kem.decapsulate(ciphertext, private_key)
+        
+        # Vérification
+        self.assertEqual(shared_secret1, shared_secret2)
+        self.assertEqual(len(shared_secret1), 32)  # 256 bits
+    
+    def test_algorithm_info(self):
+        """Test des informations d'algorithme"""
+        info = self.kem.get_algorithm_info()
+        
+        expected_info = {
+            "name": "CRYSTALS-Kyber-1024 (ML-KEM-1024)",
+            "security_level": 5,
+            "public_key_size": 1184,
+            "private_key_size": 2400,
+            "ciphertext_size": 1088,
+            "shared_secret_size": 32,
+            "quantum_resistant": True,
+            "standardized": True,
+            "standard": "NIST PQC"
+        }
+        
+        self.assertEqual(info, expected_info)
+```
+
+### Edge-case : message hors-ordre
+```python
+import unittest
+from kyberium.ratchet.triple_ratchet import TripleRatchet
+
+class TestTripleRatchet(unittest.TestCase):
+    def setUp(self):
+        self.ratchet = TripleRatchet()
+    
+    def test_initialization(self):
+        """Test d'initialisation du Triple Ratchet"""
+        peer_kem_public = b"peer_kem_public_key_1234"
+        peer_sign_public = b"peer_sign_public_key_5678"
+        
+        handshake_data = self.ratchet.initialize(peer_kem_public, peer_sign_public)
+        
+        # Vérifications
+        self.assertIn('kem_ciphertext', handshake_data)
+        self.assertIn('kem_signature', handshake_data)
+        self.assertIn('sign_public_key', handshake_data)
+    
+    def test_handshake_completion(self):
+        """Test de complétion du handshake"""
+        # Initialisation
+        peer_kem_public = b"peer_kem_public_key_1234"
+        peer_sign_public = b"peer_sign_public_key_5678"
+        handshake_data = self.ratchet.initialize(peer_kem_public, peer_sign_public)
+        
+        # Complétion
+        success = self.ratchet.complete_handshake(
+            handshake_data['kem_ciphertext'],
+            handshake_data['kem_signature'],
+            peer_sign_public
+        )
+        
+        self.assertTrue(success)
+        self.assertTrue(self.ratchet.handshake_done)
+    
+    def test_ratchet_encryption_decryption(self):
+        """Test de chiffrement/déchiffrement avec rotation de clés"""
+        # Établir la session
+        self._establish_session()
+        
+        # Messages de test
+        messages = [
+            b"Premier message",
+            b"Deuxieme message",
+            b"Troisieme message"
+        ]
+        
+        encrypted_messages = []
+        
+        # Chiffrement
+        for message in messages:
+            encrypted = self.ratchet.ratchet_encrypt(message)
+            encrypted_messages.append(encrypted)
+        
+        # Déchiffrement
+        for i, encrypted in enumerate(encrypted_messages):
+            decrypted = self.ratchet.ratchet_decrypt(
+                encrypted['ciphertext'],
+                encrypted['nonce'],
+                encrypted['signature'],
+                encrypted['msg_num'],
+                encrypted['sign_public_key']
+            )
+            self.assertEqual(decrypted, messages[i])
+    
+    def _establish_session(self):
+        """Helper pour établir une session de test"""
+        peer_kem_public = b"peer_kem_public_key_1234"
+        peer_sign_public = b"peer_sign_public_key_5678"
+        handshake_data = self.ratchet.initialize(peer_kem_public, peer_sign_public)
+        
+        self.ratchet.complete_handshake(
+            handshake_data['kem_ciphertext'],
+            handshake_data['kem_signature'],
+            peer_sign_public
+        )
+```
+
+## Recommandations
+- Pour la tolérance aux pertes, implémenter skipped message keys (non activé par défaut)
+- Pour l’audit, activer le mode debug pour les traces internes
+
+## Historique
+- 2025-04 : Refactoring complet, suppression des dummies, bit-flip systématique, documentation renforcée
+- 2024-12 : Ajout Triple Ratchet, edge-cases, synchronisation stricte
 
 ## 🔬 Tests Unitaires
 
