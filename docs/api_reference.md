@@ -1,3 +1,28 @@
+# 📚 Référence API Kyberium (mise à jour 2025)
+
+## 1. Philosophie API
+L’API Kyberium expose uniquement des primitives post-quantiques validées (NIST), sans fallback classique ni dummy. Tous les points d’entrée sont conçus pour la sécurité, la simplicité d’intégration et l’auditabilité.
+
+## 2. Points d’entrée principaux
+- **SessionManager** (`kyberium.api.session`) : gestion des sessions sécurisées, initialisation, handshake, Triple Ratchet
+- **KEM** (`kyberium.kem.kyber.Kyber1024`) : génération de paires de clés, encapsulation, décapsulation
+- **Signature** (`kyberium.signature.dilithium.DilithiumSignature`) : génération de clés, signature, vérification
+- **Symétrique** (`kyberium.symmetric.aesgcm`, `kyberium.symmetric.chacha20`) : chiffrement/déchiffrement authentifié
+- **KDF** (`kyberium.kdf.sha3`) : dérivation de clés, SHA-3/SHAKE-256
+
+## 3. Logique de session et sécurité
+- **Initialisation** : échange de clés Kyber, authentification Dilithium
+- **Handshake** : vérification mutuelle, encapsulation, signature
+- **Triple Ratchet** : rotation automatique des clés, PFS, synchronisation stricte
+- **Fail-closed** : toute anomalie = arrêt sécurisé, aucune récupération non sécurisée
+
+## 4. Bonnes pratiques d’utilisation
+- Toujours vérifier les retours de chaque opération (aucun fallback)
+- Utiliser les modules de test pour valider l’intégration
+- Activer le mode debug pour l’audit
+
+---
+
 ## 🖼️ Diagrammes et illustrations
 
 ### Diagramme de modules
