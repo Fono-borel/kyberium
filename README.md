@@ -319,3 +319,15 @@ Un dossier de présentation, des audits techniques et des démonstrations peuven
 - **2024-12** : Ajout du support Triple Ratchet, refonte sécurité, documentation avancée.
 - **2024-10** : Première version publique, licence MIT initiale.
 
+---
+
+## 🛡️ Nouveautés et sécurité (2025)
+
+- Suppression totale des modules dummy (DummyKyber, DummyDilithium, etc.)
+- Utilisation exclusive de primitives NIST (Kyber1024, Dilithium, AES-GCM, ChaCha20)
+- Tests bit-flip systématiques (corruption de signature, message, clé, ciphertext)
+- Politique fail-closed stricte : toute anomalie provoque la divergence des secrets, pas d’exception attendue
+- Edge-cases : messages hors-ordre, replay, désynchronisation, cas limites (vide, très long, mauvaise taille)
+- Synchronisation stricte du Triple Ratchet : aucune tolérance aux pertes, pas de skipped message keys
+- Recommandations avancées : auditabilité, activation du mode debug, intégration industrielle
+

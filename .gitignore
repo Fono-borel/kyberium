@@ -1,0 +1,11 @@
+# Ignorer le script d'automatisation
+push_to_remotes.py
+
+# Ignorer les fichiers temporaires et systèmes
+*.pyc
+__pycache__/
+.env
+.DS_Store
+
+# Ne pas ignorer le reste du projet
+!*
