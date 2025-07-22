@@ -27,5 +27,5 @@
 - Pour l’intégration industrielle : suivre les guides de déploiement et d’audit
 
 ## 6. Historique des tests
-- **2025-04** : Refactoring complet, suppression des dummies, bit-flip systématique, documentation renforcée
-- **2024-12** : Ajout Triple Ratchet, edge-cases, synchronisation stricte 
+- **2025-07** : Refactoring complet, suppression des dummies, bit-flip systématique, documentation renforcée
+- **2025-07** : Ajout Triple Ratchet, edge-cases, synchronisation stricte 

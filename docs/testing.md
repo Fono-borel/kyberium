@@ -241,8 +241,8 @@ class TestTripleRatchet(unittest.TestCase):
 - Pour l’audit, activer le mode debug pour les traces internes
 
 ## Historique
-- 2025-04 : Refactoring complet, suppression des dummies, bit-flip systématique, documentation renforcée
-- 2024-12 : Ajout Triple Ratchet, edge-cases, synchronisation stricte
+- 2025-06 : Refactoring complet, suppression des dummies, bit-flip systématique, documentation renforcée
+- 2025-07 : Ajout Triple Ratchet, edge-cases, synchronisation stricte
 
 ## 🔬 Tests Unitaires
 

@@ -32,8 +32,8 @@ Kyberium vise la sécurité post-quantique de niveau militaire, sans compromis�
 - Pour l’intégration industrielle, suivre les guides de déploiement et d’audit fournis.
 
 ## 7. Historique des correctifs de sécurité
-- **2025-04** : Suppression totale des dummies, migration full NIST, renforcement fail-closed, bit-flip systématique, documentation exhaustive.
-- **2024-12** : Ajout du Triple Ratchet post-quantique, refonte des tests edge-cases, synchronisation stricte.
+- **2025-06** : Suppression totale des dummies, migration full NIST, renforcement fail-closed, bit-flip systématique, documentation exhaustive.
+- **2025-07** : Ajout du Triple Ratchet post-quantique, refonte des tests edge-cases, synchronisation stricte.
 
 ## 8. Références
 - NIST FIPS 203, 204

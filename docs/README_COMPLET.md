@@ -303,12 +303,6 @@ Contenu :
 - **Format** : PNG
 - **Usage** : Logo principal du projet
 
-#### Animation Kyberium
-**Fichier** : `img/kyberium-animation.gif`
-- **Taille** : 3.0MB
-- **Format** : GIF animé
-- **Usage** : Démonstration visuelle
-
 ### Intégration dans la Documentation
 
 Les images sont intégrées dans :
@@ -320,7 +314,6 @@ Les images sont intégrées dans :
 
 ```markdown
 ![Kyberium Logo](img/kyberium.png)
-![Kyberium Animation](img/kyberium-animation.gif)
 ```
 
 ## 🏆 Standards de Qualité
