@@ -15,6 +15,25 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+ou en cas d'erreur
+```bash
+git clone https://github.com/RhaB17369/kyberium.git
+cd kyberium
+# Depuis le répertoire de ton projet
+rm -rf venv  # Supprime le venv actuel si existe
+python3 -m venv venv  # Crée un nouveau venv
+source venv/bin/activate  # Active l’environnement
+which pip  #verifie la disponibilite de pip
+# si oui
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+```
+si pip pas disponible
+```bash
+gsudo apt update
+sudo apt install python3-venv python3-pip python3-virtualenv
+
+```
 
 ## 3. Configuration
 - Modifier les paramètres réseau dans `messenger_app/kyberium_server.py` (host, port)

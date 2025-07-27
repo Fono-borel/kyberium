@@ -1,6 +1,6 @@
 # Rapport d’audit de conformité GNU GPL v3 – Kyberium
 
-**Date :** 2025-04
+**Date :** 2025-07
 **Responsable conformité :** RhaB17369
 
 ---
@@ -32,9 +32,9 @@ Cet audit couvre l’ensemble du projet Kyberium, incluant :
 
 ## 4. Historique des migrations majeures
 
-- **2025-04** : Migration de la licence MIT vers GNU GPL v3 (RhaB17369), synchronisation documentaire, nettoyage et conformité totale.
-- **2024-12** : Ajout du support Triple Ratchet, refonte sécurité, documentation avancée.
-- **2024-10** : Première version publique, licence MIT initiale.
+- **2025-07** : Migration de la licence MIT vers GNU GPL v3 (RhaB17369), synchronisation documentaire, nettoyage et conformité totale.
+- **2025-06** : Ajout du support Triple Ratchet, refonte sécurité, documentation avancée.
+- **2025-05** : Première version publique, licence MIT initiale.
 
 ## 5. Conclusion
 
